@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -17,13 +18,14 @@ import org.junit.Test;
 public class InputDataReadTest {
 
     private InputDataModeller idm;
-    private TestData results;
+    private TestData[] results;
     private String[] dataSources = {"data/arrival_time_g10.txt",
         "data/duration_g10.txt",
         "data/position_g10.txt",
         "data/speed_g10.txt"};
 
     public InputDataReadTest() {
+        readInputDataFiles();
     }
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
@@ -31,13 +33,16 @@ public class InputDataReadTest {
     // @Test
     // public void hello() {}
 
-    private void readInputDataFiles(int i) {
+    private void readInputDataFiles() {
+        results = new TestData[dataSources.length];
         FileWriter fw = null;
         try {
-            String file = dataSources[i];
             fw = new FileWriter("data/output.txt", true);
-            idm = new InputDataModeller(file);
-            results = idm.calculateHistogram(fw);
+            for (int i = 0; i < results.length; i++) {
+                String file = dataSources[i];
+                idm = new InputDataModeller(file);
+                results[i] = idm.calculateHistogram(fw);
+            }
         } catch (IOException ex) {
             Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -50,17 +55,17 @@ public class InputDataReadTest {
     }
 
     @Test
-    public void uniformDsitrChiSquareTest() {
-        for (int i = 0; i < dataSources.length; i++) {
-            readInputDataFiles(i);
+    public void uniformDistrChiSquareTest() {
+        for (int i = 0; i < results.length; i++) {
+
             int k = 8;
-            int N = results.getN();
+            int N = results[i].getN();
             double e = N / k;
             int[] frequency = new int[k];
             double acc = 0;
-            double step = results.getMax() / k;
+            double step = results[i].getMax() / k;
 
-            for (Double d : results.getData()) {
+            for (Double d : results[i].getData()) {
 
                 for (int j = 0; j < k; j++) {
                     if ((d >= j * step) && (d < (j + 1) * step)) {
@@ -75,8 +80,54 @@ public class InputDataReadTest {
                 System.out.println(frequency[j]);
                 acc += Math.pow(frequency[j] - e, 2) / e;
             }
+            System.out.println(dataSources[i]);
             System.out.println("Uniform Distribution\nX^2(" + (k - 2) + ", 0.005) = "
                     + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected"));
+
+
         }
+    }
+
+    @Test
+    public void expDistrChiSquareTest() {
+        for (int i = 0; i < results.length; i++) {
+
+            double lambda = Math.pow(results[i].getAverage(), -1);
+            double acc = 0;
+            int k = 8;
+            double e = results[i].getN() / k;
+            int[] freq = new int[k];
+            double F[] = new double[k + 1];
+            double equProb = Math.pow(8, -1);
+            for (int j = 0; j < F.length; j++) {
+                F[j] = j * equProb;
+            }
+            double a[] = new double[F.length];
+            for (int j = 0; j < a.length; j++) {
+                a[j] = -1 * (Math.log(1 - F[j]) / lambda);
+            }
+
+            for (Double d : results[i].getData()) {
+                for (int j = 1; j < a.length; j++) {
+                    if ((d >= a[j - 1]) && (d < a[j])) {
+                        freq[j - 1]++;
+                        break;
+                    }
+                }
+            }
+
+            for (int j = 0; j < freq.length; j++) {
+                System.out.println(freq[j]);
+                acc += Math.pow(freq[j] - e, 2) / e;
+            }
+            System.out.println(dataSources[i]);
+            System.out.println("Exponential Distribution\nX^2(6, 0.005) = "
+                    + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected"));
+
+        }
+    }
+
+    @Test
+    public void normalDistrChiSquareTest() {
     }
 }
