@@ -46,9 +46,9 @@ public class InputDataModeller {
             out.write(dataSource + newLine);
 
             java.util.Collections.sort(data);
-            k = (int) Math.floor(Math.sqrt(data.size())) + (int) (Math.random() * 5);
+            k = (int) Math.floor(Math.sqrt(data.size()));
 
-            double stepSize = (data.get(data.size() - 1) - data.get(0)) / k;
+            double stepSize = (data.get(data.size() - 1)) / k;
             int[] freq = new int[k];
             double acc = 0;
             for (Double d : data) {
