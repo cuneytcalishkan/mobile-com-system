@@ -48,12 +48,13 @@ public class InputDataModeller {
             java.util.Collections.sort(data);
             k = (int) Math.floor(Math.sqrt(data.size()));
 
-            double stepSize = (data.get(data.size() - 1)) / k;
+            double stepSize = (data.get(data.size() - 1) - data.get(0)) / k;
+            stepSize += stepSize * 0.001;
             int[] freq = new int[k];
             double acc = 0;
             for (Double d : data) {
                 for (int i = 1; i <= k; i++) {
-                    if ((d >= (stepSize * (i - 1))) && (d < (i * stepSize))) {
+                    if ((d >= ((stepSize * (i - 1)) + data.get(0))) && (d < (i * stepSize) + data.get(0))) {
                         freq[i - 1]++;
                         break;
                     }
