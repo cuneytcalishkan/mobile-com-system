@@ -94,8 +94,8 @@ public class InputDataReadTest {
                 }
                 fw.write("----------------------------------------------------" + newLine);
                 fw.write(oacc + "\t" + eacc + "\t" + acc + newLine);
-                fw.write("X^2(" + (k - 2) + ", 0.005) = "
-                        + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected") + newLine);
+                fw.write("X^2(6, 0.005) = 12.6"
+                        + ((12.6 > acc) ? " > " + acc + ", not rejected" : " < " + acc + ", rejected") + newLine);
                 fw.write("----------------------------------------------------" + newLine);
             }
         } catch (IOException ex) {
@@ -151,8 +151,8 @@ public class InputDataReadTest {
                 }
                 fw.write("----------------------------------------------------" + newLine);
                 fw.write(oacc + "\t" + eacc + "\t" + acc + newLine);
-                fw.write("X^2(6, 0.005) = "
-                        + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected") + newLine);
+                fw.write("X^2(6, 0.005) = 12.6"
+                        + ((12.6 > acc) ? " > " + acc + ", not rejected" : " < " + acc + ", rejected") + newLine);
                 fw.write("----------------------------------------------------" + newLine);
 
             }
