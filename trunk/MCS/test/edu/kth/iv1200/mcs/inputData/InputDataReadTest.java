@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -27,17 +26,12 @@ public class InputDataReadTest {
     public InputDataReadTest() {
         readInputDataFiles();
     }
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
 
     private void readInputDataFiles() {
         results = new TestData[dataSources.length];
         FileWriter fw = null;
         try {
-            fw = new FileWriter("data/output.txt", true);
+            fw = new FileWriter("data/output.txt", false);
             for (int i = 0; i < results.length; i++) {
                 String file = dataSources[i];
                 idm = new InputDataModeller(file);
@@ -56,78 +50,120 @@ public class InputDataReadTest {
 
     @Test
     public void uniformDistrChiSquareTest() {
-        for (int i = 0; i < results.length; i++) {
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter("data/uniformOutput.txt", false);
+            String newLine = System.getProperty("line.separator");
 
-            int k = 8;
-            int N = results[i].getN();
-            double e = N / k;
-            int[] frequency = new int[k];
-            double acc = 0;
-            double step = results[i].getMax() / k;
+            for (int i = 0; i < results.length; i++) {
 
-            for (Double d : results[i].getData()) {
-
-                for (int j = 0; j < k; j++) {
-                    if ((d >= j * step) && (d < (j + 1) * step)) {
-                        frequency[j]++;
-                        break;
-                    }
+                int k = 8;
+                int N = results[i].getN();
+                double e = N / k;
+                int[] frequency = new int[k];
+                double acc = 0, sqr = 0;
+                double oacc = 0, eacc = 0;
+                double b = results[i].getMax() * (results[i].getN() + 1) / results[i].getN();
+                double F[] = new double[k + 1];
+                double equProb = Math.pow(k, -1);
+                for (int j = 0; j < F.length; j++) {
+                    F[j] = j * equProb;
                 }
+                double a[] = new double[F.length];
+                for (int j = 0; j < a.length; j++) {
+                    a[j] = b * F[j];
+                }
+                for (Double d : results[i].getData()) {
 
+                    for (int j = 1; j < a.length; j++) {
+                        if ((d >= a[j - 1]) && (d < a[j])) {
+                            frequency[j - 1]++;
+                            break;
+                        }
+                    }
+
+                }
+                fw.write(dataSources[i] + newLine);
+                fw.write("Obs\tExp\tX^2" + newLine);
+                for (int j = 0; j < k; j++) {
+                    oacc += frequency[j];
+                    eacc += e;
+                    sqr = Math.pow(frequency[j] - e, 2) / e;
+                    acc += sqr;
+                    fw.write(frequency[j] + "\t" + e + "\t" + sqr + newLine);
+                }
+                fw.write("----------------------------------------------------" + newLine);
+                fw.write(oacc + "\t" + eacc + "\t" + acc + newLine);
+                fw.write("X^2(" + (k - 2) + ", 0.005) = "
+                        + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected") + newLine);
+                fw.write("----------------------------------------------------" + newLine);
             }
-
-            for (int j = 0; j < k; j++) {
-                System.out.println(frequency[j]);
-                acc += Math.pow(frequency[j] - e, 2) / e;
+        } catch (IOException ex) {
+            Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println(dataSources[i]);
-            System.out.println("Uniform Distribution\nX^2(" + (k - 2) + ", 0.005) = "
-                    + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected"));
-
-
         }
     }
 
     @Test
     public void expDistrChiSquareTest() {
-        for (int i = 0; i < results.length; i++) {
+        FileWriter fw = null;
+        try {
+            String newLine = System.getProperty("line.separator");
+            fw = new FileWriter("data/expOutput.txt", false);
+            for (int i = 0; i < results.length; i++) {
 
-            double lambda = Math.pow(results[i].getAverage(), -1);
-            double acc = 0;
-            int k = 8;
-            double e = results[i].getN() / k;
-            int[] freq = new int[k];
-            double F[] = new double[k + 1];
-            double equProb = Math.pow(8, -1);
-            for (int j = 0; j < F.length; j++) {
-                F[j] = j * equProb;
-            }
-            double a[] = new double[F.length];
-            for (int j = 0; j < a.length; j++) {
-                a[j] = -1 * (Math.log(1 - F[j]) / lambda);
-            }
+                double lambda = Math.pow(results[i].getAverage(), -1);
+                double acc = 0, sqr = 0, oacc = 0, eacc = 0;
+                int k = 8;
+                double e = results[i].getN() / k;
+                int[] freq = new int[k];
+                double F[] = new double[k + 1];
+                double equProb = Math.pow(k, -1);
+                for (int j = 0; j < F.length; j++) {
+                    F[j] = j * equProb;
+                }
+                double a[] = new double[F.length];
+                for (int j = 0; j < a.length; j++) {
+                    a[j] = -1 * (Math.log(1 - F[j]) / lambda);
+                }
 
-            for (Double d : results[i].getData()) {
-                for (int j = 1; j < a.length; j++) {
-                    if ((d >= a[j - 1]) && (d < a[j])) {
-                        freq[j - 1]++;
-                        break;
+                for (Double d : results[i].getData()) {
+                    for (int j = 1; j < a.length; j++) {
+                        if ((d >= a[j - 1]) && (d < a[j])) {
+                            freq[j - 1]++;
+                            break;
+                        }
                     }
                 }
-            }
+                fw.write(dataSources[i] + newLine);
+                fw.write("Obs\tExp\tX^2" + newLine);
+                for (int j = 0; j < freq.length; j++) {
+                    oacc += freq[j];
+                    eacc += e;
+                    sqr = Math.pow(freq[j] - e, 2) / e;
+                    acc += sqr;
+                    fw.write(freq[j] + "\t" + e + "\t" + sqr + newLine);
+                }
+                fw.write("----------------------------------------------------" + newLine);
+                fw.write(oacc + "\t" + eacc + "\t" + acc + newLine);
+                fw.write("X^2(6, 0.005) = "
+                        + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected") + newLine);
+                fw.write("----------------------------------------------------" + newLine);
 
-            for (int j = 0; j < freq.length; j++) {
-                System.out.println(freq[j]);
-                acc += Math.pow(freq[j] - e, 2) / e;
             }
-            System.out.println(dataSources[i]);
-            System.out.println("Exponential Distribution\nX^2(6, 0.005) = "
-                    + acc + ((acc > 12.6) ? " > 12.6, rejected" : " < 12.6, not rejected"));
-
+        } catch (IOException ex) {
+            Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-    }
-
-    @Test
-    public void normalDistrChiSquareTest() {
     }
 }
