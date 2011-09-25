@@ -10,13 +10,9 @@ public class LCG {
      */
     private double Xi;
     /**
-     * The mean service time in minutes.
+     * The mean value for exponential distribution.
      */
-    private double serviceMean;
-    /**
-     * The mean interarrival time in minutes.
-     */
-    private double interArrivalMean;
+    private double mean;
     /**
      * LCG parameter.
      */
@@ -33,13 +29,12 @@ public class LCG {
     /**
      * 
      * @param Xi - The seed value.
-     * @param serviceMean - the service mean time in minutes.
+     * @param expMean - Mean value for exponential distribution.
      * @param interArrivalMean  - the interarrival mean time in minutes.
      */
-    public LCG(double Xi, double serviceMean, double interArrivalMean) {
+    public LCG(double Xi, double expMean, double interArrivalMean) {
         this.Xi = Xi;
-        this.serviceMean = serviceMean;
-        this.interArrivalMean = interArrivalMean;
+        this.mean = expMean;
     }
 
     /**
@@ -52,21 +47,11 @@ public class LCG {
     }
 
     /**
-     * Generates the next arrival event time which is exponentially distributed.
-     * 
-     * @return The next arrival time.
+     * Generates the next event time which is exponentially distributed
+     * @return The next event time.
      */
-    public double nextArrivalExp() {
-        double result = -interArrivalMean * Math.log(nextRand());
-        return result;
-    }
-
-    /**
-     * Generates the next departure event time which is exponentially distributed
-     * @return The next departure time.
-     */
-    public double nextDepartureExp() {
-        double result = -serviceMean * Math.log(nextRand());
+    public double nextExp() {
+        double result = -mean * Math.log(nextRand());
         return result;
     }
 }
