@@ -4,8 +4,10 @@
  */
 package edu.kth.iv1200.mcs.inputData;
 
+import edu.kth.iv1200.mcs.rng.LCG;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.Test;
@@ -214,6 +216,50 @@ public class InputDataReadTest {
                 Logger.getLogger(InputDataReadTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+
+    }
+
+    @Test
+    public void normalDistrTestChiSquare() {
+
+        String newLine = System.getProperty("line.separator");
+        int n = 800;
+        ArrayList<Double> data = new ArrayList<Double>();
+        LCG lcg = new LCG(12312312);
+        double acc = 0, sqr = 0, oacc = 0, eacc = 0;
+        int k = 8;
+        double e = n / k;
+        double mean = 100.099;
+        double stdev = 20.84;
+        int[] freq = new int[k];
+        double a[] = {16.9474, 76.133, 85.9278, 93.4302, 100.099, 106.7678, 114.2702, 124.065, 183.2506};
+
+        for (int i = 0; i < n; i++) {
+            data.add(lcg.nextNormal(mean, stdev));
+        }
+
+        for (Double d : data) {
+            for (int j = 1; j < a.length; j++) {
+                if ((d >= a[j - 1]) && (d < a[j])) {
+                    freq[j - 1]++;
+                    break;
+                }
+            }
+        }
+        for (int j = 0; j < freq.length; j++) {
+            oacc += freq[j];
+            eacc += e;
+            sqr = Math.pow(freq[j] - e, 2) / e;
+            acc += sqr;
+            System.out.print(freq[j] + "\t" + e + "\t" + sqr + newLine);
+        }
+        System.out.print("----------------------------------------------------" + newLine);
+        System.out.print(oacc + "\t" + eacc + "\t" + acc + newLine);
+        System.out.print("X^2(5, 0.05) = 11.1"
+                + ((11.1 > acc) ? " > " + acc + ", not rejected" : " < " + acc + ", rejected") + newLine);
+        System.out.print("----------------------------------------------------" + newLine);
+
+
 
     }
 }
